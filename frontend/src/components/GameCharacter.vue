@@ -44,8 +44,8 @@ export default {
 .sprite {
   width: 100%;
   height: 100%;
-  background-image: url('/sprites/character.png');
   background-size: 128px 128px; /* 4 frames x 4 directions */
+  /* The background image will be set dynamically by the GameAssetGenerator component */
 }
 
 .sprite.down {
