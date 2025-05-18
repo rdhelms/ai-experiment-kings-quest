@@ -8,10 +8,13 @@ module.exports = {
     'eslint:recommended'
   ],
   parserOptions: {
+    parser: 'babel-eslint',
     ecmaVersion: 2020
   },
   rules: {
     'no-console': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
-    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off'
+    'no-debugger': process.env.NODE_ENV === 'production' ? 'warn' : 'off',
+    'vue/no-deprecated-slot-attribute': 'off',
+    'vue/no-deprecated-slot-scope-attribute': 'off'
   }
 }
