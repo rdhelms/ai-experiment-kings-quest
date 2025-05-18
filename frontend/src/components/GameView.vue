@@ -9,6 +9,8 @@
       <TextParser @command="processCommand" />
       <Inventory :items="inventory" />
     </div>
+    <button class="help-button" @click="toggleHelp">Help</button>
+    <HelpScreen :showHelp="showHelp" @close-help="toggleHelp" />
   </div>
 </template>
 
@@ -18,6 +20,7 @@ import GameCharacter from './GameCharacter.vue'
 import GameStatus from './GameStatus.vue'
 import TextParser from './TextParser.vue'
 import Inventory from './Inventory.vue'
+import HelpScreen from './HelpScreen.vue'
 import gameData from '../data/gameData.js'
 
 export default {
@@ -27,7 +30,8 @@ export default {
     GameCharacter,
     GameStatus,
     TextParser,
-    Inventory
+    Inventory,
+    HelpScreen
   },
   data() {
     return {
@@ -39,7 +43,8 @@ export default {
       gameStatus: 'Welcome to King\'s Quest I. Type "help" for commands.',
       gameData: gameData,
       maxX: 320,
-      maxY: 200
+      maxY: 200,
+      showHelp: false
     }
   },
   mounted() {
@@ -49,6 +54,9 @@ export default {
     window.removeEventListener('keydown', this.handleKeyPress)
   },
   methods: {
+    toggleHelp() {
+      this.showHelp = !this.showHelp;
+    },
     processCommand(command) {
       const lowerCommand = command.toLowerCase().trim()
       
@@ -56,7 +64,7 @@ export default {
       
       // Basic command parsing
       if (lowerCommand === 'help') {
-        this.gameStatus = 'Commands: look, take [item], use [item], go [direction], inventory'
+        this.toggleHelp();
       } else if (lowerCommand === 'look') {
         this.gameStatus = this.gameData.scenes[this.currentScene].description
       } else if (lowerCommand === 'inventory') {
@@ -97,7 +105,29 @@ export default {
       
       // Item-specific logic
       // This would be expanded for actual game puzzles
-      this.gameStatus = `You used the ${item}, but nothing happened.`
+      if (item === 'key' && this.currentScene === 'mountain_cave') {
+        this.gameStatus = `You used the key to unlock a hidden passage!`;
+        // Add dragon's lair as a valid exit if it wasn't already
+        this.gameData.scenes[this.currentScene].exits.north = 'dragon_lair';
+      } else if (item === 'bucket' && this.currentScene === 'old_well') {
+        this.gameStatus = `You lowered the bucket into the well and pulled up some water.`;
+        // Replace the bucket in inventory with a water bucket
+        const bucketIndex = this.inventory.indexOf('bucket');
+        if (bucketIndex !== -1) {
+          this.inventory[bucketIndex] = 'bucket_of_water';
+        }
+      } else if (item === 'bucket_of_water' && this.currentScene === 'dragon_lair') {
+        this.gameStatus = `You threw the water at the dragon! The dragon is now wet and angry.`;
+        // Remove the bucket of water from inventory
+        const bucketIndex = this.inventory.indexOf('bucket_of_water');
+        if (bucketIndex !== -1) {
+          this.inventory.splice(bucketIndex, 1);
+        }
+      } else if (item === 'lantern' && (this.currentScene === 'mountain_cave' || this.currentScene === 'dragon_lair')) {
+        this.gameStatus = `You light the lantern, illuminating the dark cave.`;
+      } else {
+        this.gameStatus = `You used the ${item}, but nothing happened.`;
+      }
     },
     moveDirection(direction) {
       const scene = this.gameData.scenes[this.currentScene]
@@ -109,6 +139,9 @@ export default {
       }
     },
     handleKeyPress(event) {
+      // Don't process keyboard input when help screen is showing
+      if (this.showHelp) return;
+      
       // Arrow key movement
       switch(event.key) {
         case 'ArrowUp':
@@ -155,16 +188,16 @@ export default {
       const scene = this.gameData.scenes[this.currentScene]
       
       // Check boundaries for scene transitions
-      if (this.playerPosition.x <= 0 && scene.exits.west) {
+      if (this.playerPosition.x <= 0 && scene.exits && scene.exits.west) {
         this.currentScene = scene.exits.west
         this.playerPosition.x = this.maxX - 10
-      } else if (this.playerPosition.x >= this.maxX && scene.exits.east) {
+      } else if (this.playerPosition.x >= this.maxX && scene.exits && scene.exits.east) {
         this.currentScene = scene.exits.east
         this.playerPosition.x = 10
-      } else if (this.playerPosition.y <= 0 && scene.exits.north) {
+      } else if (this.playerPosition.y <= 0 && scene.exits && scene.exits.north) {
         this.currentScene = scene.exits.north
         this.playerPosition.y = this.maxY - 10
-      } else if (this.playerPosition.y >= this.maxY && scene.exits.south) {
+      } else if (this.playerPosition.y >= this.maxY && scene.exits && scene.exits.south) {
         this.currentScene = scene.exits.south
         this.playerPosition.y = 10
       }
@@ -182,6 +215,7 @@ export default {
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
 }
 
 .game-screen {
@@ -200,5 +234,23 @@ export default {
   display: flex;
   flex-direction: column;
   padding: 10px;
+}
+
+.help-button {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 5px 10px;
+  background-color: #442200;
+  color: #fff;
+  border: 2px solid #885500;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  cursor: pointer;
+  z-index: 50;
+}
+
+.help-button:hover {
+  background-color: #885500;
 }
 </style>
