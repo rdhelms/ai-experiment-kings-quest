@@ -6,6 +6,11 @@ export default defineConfig({
   root: './',
   server: {
     port: 3000,
-    host: '0.0.0.0'
+    host: true, // Use true to listen on all addresses
+    strictPort: true,
+    cors: true,
+    hmr: {
+      clientPort: 3000
+    }
   }
 })
