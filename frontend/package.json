@@ -8,6 +8,7 @@
     "vue-router": "^4.5.1"
   },
   "scripts": {
+    "start": "node scripts/start.js",
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
     "lint": "vue-cli-service lint"
